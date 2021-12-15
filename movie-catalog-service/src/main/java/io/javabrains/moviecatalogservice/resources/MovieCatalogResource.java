@@ -3,6 +3,7 @@ package io.javabrains.moviecatalogservice.resources;
 import io.javabrains.moviecatalogservice.models.CatalogItem;
 import io.javabrains.moviecatalogservice.models.Movie;
 import io.javabrains.moviecatalogservice.models.Rating;
+import io.javabrains.moviecatalogservice.models.UserRating;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,13 +29,13 @@ public class MovieCatalogResource {
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
 
         // 1 - get all movies that were rated by the user
-        List<Rating> ratings = Arrays.asList(
-                new Rating("1234", 4),
-                new Rating("5678", 3)
-        );
+        UserRating ratings = restTemplate.getForObject(
+                "http://localhost:8083/ratingsdata/users/" + userId,
+                UserRating.class
+        ); // If response type is a list, we have to set type to sth like ParametrizedType<List<Rating>> - can't use List<Rating>
 
         // 3 - bind and return data
-        return ratings.stream().map(rating -> {
+        return ratings.getUserRating().stream().map(rating -> {
             // 2 - get rated movies details
             // 2a - using RestTemplate
              Movie movie = restTemplate.getForObject("http://localhost:8082/movies/" + rating.getMovieId(), Movie.class);
