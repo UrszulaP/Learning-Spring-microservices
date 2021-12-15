@@ -17,7 +17,7 @@ public class MovieCatalogServiceApplication {
 	}
 
 	@Bean
-	@LoadBalanced // to use Eureka service discovery
+	@LoadBalanced // to use Eureka service discovery; provides load balancer to handle multiple service instances running
 	public RestTemplate getRestTemplate() {
 		return new RestTemplate();
 	}
