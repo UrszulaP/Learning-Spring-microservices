@@ -30,7 +30,7 @@ public class MovieCatalogResource {
 
         // 1 - get all movies that were rated by the user
         UserRating ratings = restTemplate.getForObject(
-                "http://localhost:8083/ratingsdata/users/" + userId,
+                "http://ratings-data-service/ratingsdata/users/" + userId, // not a real url - protocol://<service name in Eureka service discovery>/<endpoint>
                 UserRating.class
         ); // If response type is a list, we have to set type to sth like ParametrizedType<List<Rating>> - can't use List<Rating>
 
@@ -38,7 +38,7 @@ public class MovieCatalogResource {
         return ratings.getUserRating().stream().map(rating -> {
             // 2 - get rated movies details
             // 2a - using RestTemplate
-             Movie movie = restTemplate.getForObject("http://localhost:8082/movies/" + rating.getMovieId(), Movie.class);
+             Movie movie = restTemplate.getForObject("http://movie-info-service/movies/" + rating.getMovieId(), Movie.class); // not a real url - protocol://<service name in Eureka service discovery>/<endpoint>
             // 2b - using WebClient
             // Movie movie = webClientBuilder.build()
             //         .get()
