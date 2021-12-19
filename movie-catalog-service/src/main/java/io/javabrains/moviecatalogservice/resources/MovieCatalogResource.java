@@ -3,6 +3,7 @@ package io.javabrains.moviecatalogservice.resources;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import io.javabrains.moviecatalogservice.models.CatalogItem;
 import io.javabrains.moviecatalogservice.models.Movie;
+import io.javabrains.moviecatalogservice.models.Rating;
 import io.javabrains.moviecatalogservice.models.UserRating;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,23 +31,21 @@ public class MovieCatalogResource {
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
 
         UserRating ratings = getUserRating(userId);
-        // 3 - bind and return data
+
         return ratings.getUserRating().stream()
                 .map(rating -> getCatalogItem(rating))
                 .collect(Collectors.toList());
     }
 
-    // 1 - get all movies that were rated by the user
-    private UserRating getUserRating(String userId) {
+    private UserRating getUserRating(@PathVariable("userId") String userId) {
         UserRating ratings = restTemplate.getForObject(
                 "http://ratings-data-service/ratingsdata/users/" + userId, // not a real url - protocol://<service name in Eureka service discovery>/<endpoint>
-                UserRating.class // If response type is a list, we have to set type to sth like ParametrizedType<List<Rating>> - can't use List<Rating>
+                UserRating.class
         );
         return ratings;
     }
 
-    // 2 - get rated movies details
-    private CatalogItem getCatalogItem(io.javabrains.moviecatalogservice.models.Rating rating) {
+    private CatalogItem getCatalogItem(Rating rating) {
         Movie movie = restTemplate.getForObject(
                 "http://movie-info-service/movies/" + rating.getMovieId(),
                 Movie.class
