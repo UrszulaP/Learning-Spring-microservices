@@ -27,7 +27,6 @@ public class MovieCatalogResource {
     private WebClient.Builder webClientBuilder;
 
     @RequestMapping("/{userId}")
-    @HystrixCommand(fallbackMethod = "getFallbackCatalog") // tells Hystrix what to break; sets fallback mechanism
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
 
         UserRating ratings = getUserRating(userId);
@@ -37,6 +36,8 @@ public class MovieCatalogResource {
                 .collect(Collectors.toList());
     }
 
+
+    @HystrixCommand(fallbackMethod = "getFallbackUserRating") // tells Hystrix what to break; sets fallback mechanism
     private UserRating getUserRating(@PathVariable("userId") String userId) {
         UserRating ratings = restTemplate.getForObject(
                 "http://ratings-data-service/ratingsdata/users/" + userId, // not a real url - protocol://<service name in Eureka service discovery>/<endpoint>
@@ -45,6 +46,17 @@ public class MovieCatalogResource {
         return ratings;
     }
 
+    private UserRating getFallbackUserRating(@PathVariable("userId") String userId) {
+        UserRating userRating = new UserRating();
+        userRating.setUserId(userId);
+        userRating.setUserRating(Arrays.asList(
+                new Rating("0", 0)
+        ));
+        return userRating;
+    }
+
+
+    @HystrixCommand(fallbackMethod = "getFallbackCatalogItem")
     private CatalogItem getCatalogItem(Rating rating) {
         Movie movie = restTemplate.getForObject(
                 "http://movie-info-service/movies/" + rating.getMovieId(),
@@ -53,11 +65,8 @@ public class MovieCatalogResource {
         return new CatalogItem(movie.getName(), "Desc", rating.getRating());
     }
 
-
-
-    // fallback response should be simple, hardcoded, at most taken from the cache
-    // we shouldn't do any other call in fallback, because it can also fail and we would have to handle that too
-    public List<CatalogItem> getFallbackCatalog(@PathVariable("userId") String userId) {
-        return Arrays.asList(new CatalogItem("No movie", "", 0));
+    private CatalogItem getFallbackCatalogItem(Rating rating) {
+        return new CatalogItem("Movie name not found", "", rating.getRating());
     }
+
 }
