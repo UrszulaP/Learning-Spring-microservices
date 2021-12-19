@@ -38,7 +38,10 @@ public class MovieCatalogResource {
         // 3 - bind and return data
         return ratings.getUserRating().stream().map(rating -> {
             // 2 - get rated movies details
-            Movie movie = restTemplate.getForObject("http://movie-info-service/movies/" + rating.getMovieId(), Movie.class); // not a real url - protocol://<service name in Eureka service discovery>/<endpoint>
+            Movie movie = restTemplate.getForObject(
+                    "http://movie-info-service/movies/" + rating.getMovieId(),
+                    Movie.class
+            ); // not a real url - protocol://<service name in Eureka service discovery>/<endpoint>
             return new CatalogItem(movie.getName(), "Desc", rating.getRating());
         }).collect(Collectors.toList());
     }
